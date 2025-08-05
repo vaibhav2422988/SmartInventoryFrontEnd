@@ -1,0 +1,57 @@
+.add-item-container {
+  padding: 40px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f4f6f8;
+  color: #333;
+}
+
+/* Table Container */
+.item-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background-color: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  margin-top: 30px;
+}
+
+/* Table Header */
+.item-table th {
+  background-color: #007bff;
+  color: white;
+  padding: 16px;
+  text-align: left;
+  font-size: 16px;
+  font-weight: 600;
+  border-bottom: 2px solid #0056b3;
+}
+
+/* Table Rows */
+.item-table td {
+  padding: 16px;
+  font-size: 15px;
+  border-bottom: 1px solid #e0e0e0;
+  vertical-align: middle;
+}
+
+/* Hover Effect */
+.item-table tr:hover {
+  background-color: #f9f9fb;
+  transition: background-color 0.2s ease;
+}
+
+/* First and Last Cell Rounded Corners */
+.item-table tr:first-child th:first-child {
+  border-top-left-radius: 12px;
+}
+.item-table tr:first-child th:last-child {
+  border-top-right-radius: 12px;
+}
+.item-table tr:last-child td:first-child {
+  border-bottom-left-radius: 12px;
+}
+.item-table tr:last-child td:last-child {
+  border-bottom-right-radius: 12px;
+}

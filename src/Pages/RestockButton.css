@@ -1,0 +1,16 @@
+.restock-btn {
+    background-color: #28a745;
+    color: white;
+    padding: 8px 14px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  
+  .restock-btn:hover {
+    background-color: #218838;
+  }
+  
