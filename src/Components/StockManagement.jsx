@@ -1,17 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import apiService from '../apiService'; // Adjust path as needed
+import { ArrowUp, ArrowDown, Filter } from 'react-feather'; // Place at the top
 
 const StockManagement = () => {
   const [inventory, setInventory] = useState([]);
+  const [sortDirection, setSortDirection] = useState(null); // 'asc' or 'desc'
 
-  const API_BASE_URL = 'https://localhost:7068';
-
-  // Fetch all items on component mount
   useEffect(() => {
     const fetchInventory = async () => {
       try {
-        const response = await axios.get(`${API_BASE_URL}/api/Item`);
-        setInventory(response.data);
+        const data = await apiService.getItems();
+        setInventory(data);
       } catch (error) {
         console.error('Error fetching inventory:', error);
       }
@@ -20,24 +19,16 @@ const StockManagement = () => {
     fetchInventory();
   }, []);
 
-  // Handle stock adjustment (+ or -)
   const handleStockChange = async (itemId, change) => {
     const action = change > 0 ? '+' : '-';
 
     try {
-      await axios.post(`${API_BASE_URL}/api/Stock/adjust`, {
-        itemId,
-        action,
-      });
+      await apiService.adjustStock({ itemId, action });
 
-      // Optimistically update local UI
       setInventory(prev =>
         prev.map(item =>
           item.id === itemId
-            ? {
-                ...item,
-                currentQuantity: item.currentQuantity + change,
-              }
+            ? { ...item, currentQuantity: item.currentQuantity + change }
             : item
         )
       );
@@ -46,9 +37,37 @@ const StockManagement = () => {
     }
   };
 
+  const toggleSort = () => {
+    setSortDirection(prev =>
+      prev === 'asc' ? 'desc' : 'asc'
+    );
+  };
+
+  // Apply sorting
+  const sortedInventory = [...inventory].sort((a, b) => {
+    if (sortDirection === 'asc') {
+      return a.currentQuantity - b.currentQuantity;
+    } else if (sortDirection === 'desc') {
+      return b.currentQuantity - a.currentQuantity;
+    }
+    return 0; // No sort
+  });
+
   return (
     <div className="bg-white rounded-lg shadow-lg p-6">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">Stock Management</h2>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-gray-800">Stock Management</h2>
+
+        <button
+          onClick={toggleSort}
+          className="flex items-center space-x-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded text-sm transition"
+        >
+          <Filter size={16} />
+          <span>Sort by Stock</span>
+          {sortDirection === 'asc' && <ArrowUp size={16} />}
+          {sortDirection === 'desc' && <ArrowDown size={16} />}
+        </button>
+      </div>
 
       <div className="overflow-x-auto">
         <table className="min-w-full table-auto">
@@ -63,7 +82,7 @@ const StockManagement = () => {
             </tr>
           </thead>
           <tbody>
-            {inventory.map(item => (
+            {sortedInventory.map(item => (
               <tr key={item.id} className="border-b hover:bg-gray-50">
                 <td className="px-4 py-2 text-sm text-gray-800">{item.id}</td>
                 <td className="px-4 py-2 text-sm text-gray-800">{item.name}</td>

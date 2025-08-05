@@ -4,19 +4,22 @@ import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend
 } from 'recharts';
+import apiService from '../apiService';
+import CategoryRanking from './CategoryRanking';
 
 const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042'];
 
 const Reports = () => {
   const [categoryData, setCategoryData] = useState([]);
 
-  useEffect(() => {
+    useEffect(() => {
     const fetchCategoryCounts = async () => {
       try {
-        const response = await axios.get('https://localhost:7068/api/Category/item-counts');
-        const formatted = response.data.map(cat => ({
+        const data = await apiService.getCategoryItemCounts();
+        const formatted = data.map(cat => ({
           name: cat.categoryName,
           value: cat.itemCount,
+          stock: cat.totalStock
         }));
         setCategoryData(formatted);
       } catch (error) {
@@ -62,14 +65,15 @@ const Reports = () => {
             <BarChart data={categoryData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
-              <YAxis allowDecimals={false} />
+              <YAxis allowDecimals={false} dataKey="stock"/>
               <Tooltip />
               <Legend />
-              <Bar dataKey="value" name="Item Count" fill="#8884d8" />
+              <Bar dataKey="stock" name="Items Count" fill="#8884d8" />
             </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
+        <CategoryRanking/>
     </div>
   );
 };

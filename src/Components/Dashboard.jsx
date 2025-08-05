@@ -1,27 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { Package, BarChart2, AlertTriangle, TrendingUp } from 'react-feather';
+import apiService from '../apiService';
 
-const API_BASE_URL = 'https://localhost:7068';
-
-const Dashboard = () => {
+const Dashboard = ({ setActiveTab }) => {
   const [items, setItems] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Fetch data on mount
   useEffect(() => {
     fetchItems();
     fetchCategories();
   }, []);
 
-  // Fetch items from API
   const fetchItems = async () => {
     try {
-      const res = await axios.get(`${API_BASE_URL}/api/Item`);
-      console.log('Fetched Items:', res.data); // Debugging log
-      setItems(res.data);
+      const res = await apiService.getItems();
+      setItems(res);
     } catch (error) {
       console.error('Failed to fetch items:', error);
       setError('Failed to load items data');
@@ -29,12 +24,10 @@ const Dashboard = () => {
     }
   };
 
-  // Fetch categories from API
   const fetchCategories = async () => {
     try {
-      const res = await axios.get(`${API_BASE_URL}/api/Category`);
-      console.log('Fetched Categories:', res.data); // Debugging log
-      setCategories(res.data);
+      const res = await apiService.getCategories();
+      setCategories(res);
       setLoading(false);
     } catch (error) {
       console.error('Failed to fetch categories:', error);
@@ -43,35 +36,41 @@ const Dashboard = () => {
     }
   };
 
-  // Calculated values
   const totalItems = items.length;
   const totalStock = items.reduce((acc, item) => acc + (item.currentQuantity || 0), 0);
   const lowStockItems = items.filter(item => item.currentQuantity < item.minQuantity);
-  const restockableItems = items.filter(item => item.currentQuantity + 10 < item.minQuantity)
+  const restockableItems = items.filter(item => item.currentQuantity + 10 < item.minQuantity);
 
-  if (loading) {
-    return <p className="p-4 text-center">Loading...</p>;
-  }
+  if (loading) return <p className="p-4 text-center">Loading...</p>;
+  if (error) return <p className="p-4 text-center text-red-600">{error}</p>;
 
-  if (error) {
-    return <p className="p-4 text-center text-red-600">{error}</p>;
-  }
+  const cardClasses = `bg-white rounded-lg shadow-md p-6 cursor-pointer 
+    transition duration-200 transform hover:scale-105`;
 
   return (
     <div className="space-y-6">
-      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-lg shadow-lg p-6 border-l-4 border-blue-500">
+        {/* Total Items / Categories */}
+        <div
+          className={`${cardClasses} border-l-4 border-blue-500 hover:shadow-lg hover:bg-blue-50 hover:shadow-blue-300`}
+          onClick={() => setActiveTab('all-items')}
+        >
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-600 text-sm">Total Items / Categories</p>
-              <p className="text-2xl font-bold text-gray-800">{totalItems} / {categories.length}</p>
+              <p className="text-2xl font-bold text-gray-800">
+                {totalItems} / {categories.length}
+              </p>
             </div>
             <Package className="w-8 h-8 text-blue-500" />
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-lg p-6 border-l-4 border-green-500">
+        {/* Total Stock */}
+        <div
+          className={`${cardClasses} border-l-4 border-green-500 hover:shadow-lg hover:bg-green-50 hover:shadow-green-300`}
+          onClick={() => setActiveTab('stock-management')}
+        >
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-600 text-sm">Total Stock</p>
@@ -81,7 +80,11 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-lg p-6 border-l-4 border-yellow-500">
+        {/* Items Below Stock */}
+        <div
+          className={`${cardClasses} border-l-4 border-yellow-500 hover:shadow-lg hover:shadow-yellow-300 hover:bg-yellow-50 `}
+          onClick={() => setActiveTab('low-stock')}
+        >
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-600 text-sm">Items Below Stock</p>
@@ -91,13 +94,18 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-lg p-6 border-l-4 border-purple-500">
+        {/* Items Available for Restock */}
+        <div
+          className={`${cardClasses} border-l-4 border-purple-600 shadow-purple-300  hover:shadow-lg  
+            hover:shadow-purple-500 hover:bg-purple-100`}
+          onClick={() => setActiveTab('low-stock')}
+        >
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-600 text-sm">Items Available for Restock</p>
               <p className="text-2xl font-bold text-gray-800">{restockableItems.length}</p>
             </div>
-            <TrendingUp className="w-8 h-8 text-purple-500" />
+            <TrendingUp className="w-8 h-8 text-purple-600" />
           </div>
         </div>
       </div>

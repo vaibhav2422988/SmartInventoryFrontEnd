@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiService from "../apiService";
 
 const AddItem = () => {
   const [name, setName] = useState('');
@@ -7,13 +7,21 @@ const AddItem = () => {
   const [stock, setStock] = useState('');
   const [minQuantity, setMinQuantity] = useState('');
   const [price, setPrice] = useState('');
+  const [measurement, setMeasurement] = useState('');  // New state for measurement
   const [categoriesList, setCategoriesList] = useState([]);
 
-  // Fetch categories on mount
   useEffect(() => {
-    axios.get('https://localhost:7068/api/Category')
-      .then(res => setCategoriesList(res.data))
-      .catch(err => console.error("Error fetching categories", err));
+    const fetchCategories = async () => {
+      try {
+        const data = await apiService.getCategories();
+        setCategoriesList(data);
+        console.log("All the category data", data);
+      } catch (err) {
+        console.error("Error fetching categories", err);
+      }
+    };
+
+    fetchCategories();
   }, []);
 
   const handleAddItem = async (e) => {
@@ -23,29 +31,28 @@ const AddItem = () => {
       name,
       categoryId: parseInt(categoryId),
       minQuantity: parseInt(minQuantity),
-      price: parseFloat(price)
+      price: parseFloat(price),
+      measurement,  // Include measurement in the new item
     };
 
     try {
-      // Step 1: Add item
-      const itemRes = await axios.post('https://localhost:7068/api/Item', newItem);
-      const itemId = itemRes.data.id;
+      const item = await apiService.addItem(newItem);
+      const itemId = item.id;
 
-      // Step 2: Add stock if entered
       if (stock && parseInt(stock) > 0) {
-        await axios.post('https://localhost:7068/api/Stock/update', {
+        await apiService.updateStock({
           itemId,
-          quantity: parseInt(stock)
+          quantity: parseInt(stock),
         });
       }
 
       alert('Item added successfully!');
-      // Reset form
       setName('');
       setCategoryId('');
       setStock('');
       setMinQuantity('');
       setPrice('');
+      setMeasurement('');  // Clear measurement input
     } catch (err) {
       console.error('Error adding item', err);
       alert('Failed to add item');
@@ -53,65 +60,123 @@ const AddItem = () => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6 max-w-3xl mx-auto mt-10">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">Add New Item</h2>
-      <form onSubmit={handleAddItem}>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="bg-white rounded-xl shadow-lg max-w-3xl mx-auto mt-12 p-8">
+      <h2 className="text-3xl font-semibold text-gray-800 mb-8 text-center">
+        Add New Item
+      </h2>
+      <form onSubmit={handleAddItem} className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Item Name */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Item Name</label>
+            <label className="block text-gray-700 font-medium mb-2">
+              Item Name
+            </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              placeholder="Enter item name"
+              className="w-full px-4 py-3 rounded-md border border-gray-300
+                         focus:outline-none focus:ring-2 focus:ring-indigo-400
+                         focus:border-indigo-400 transition-shadow shadow-sm
+                         hover:shadow-md"
               required
             />
           </div>
 
+          {/* Category */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+            <label className="block text-gray-700 font-medium mb-2">
+              Category
+            </label>
             <select
               value={categoryId}
               onChange={(e) => setCategoryId(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              className="w-full px-4 py-3 rounded-md border border-gray-300
+                         focus:outline-none focus:ring-2 focus:ring-indigo-400
+                         focus:border-indigo-400 transition-shadow shadow-sm
+                         hover:shadow-md"
               required
             >
-              <option value="">Select Category</option>
+              <option value="" disabled>
+                Select Category
+              </option>
               {categoriesList.map((cat) => (
-                <option key={cat.id} value={cat.id}>{cat.name}</option>
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
+                </option>
               ))}
             </select>
           </div>
 
+          {/* Stock Quantity */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Stock Quantity (optional)</label>
+            <label className="block text-gray-700 font-medium mb-2">
+              Stock Quantity (optional)
+            </label>
             <input
               type="number"
               value={stock}
               onChange={(e) => setStock(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              placeholder="e.g. 10"
+              className="w-full px-4 py-3 rounded-md border border-gray-300
+                         focus:outline-none focus:ring-2 focus:ring-indigo-400
+                         focus:border-indigo-400 transition-shadow shadow-sm
+                         hover:shadow-md"
             />
           </div>
 
+          {/* Minimum Quantity */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Minimum Quantity</label>
+            <label className="block text-gray-700 font-medium mb-2">
+              Minimum Quantity
+            </label>
             <input
               type="number"
               value={minQuantity}
               onChange={(e) => setMinQuantity(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              placeholder="e.g. 5"
+              className="w-full px-4 py-3 rounded-md border border-gray-300
+                         focus:outline-none focus:ring-2 focus:ring-indigo-400
+                         focus:border-indigo-400 transition-shadow shadow-sm
+                         hover:shadow-md"
               required
             />
           </div>
 
+          {/* Price */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Price</label>
+            <label className="block text-gray-700 font-medium mb-2">
+              Price
+            </label>
             <input
               type="number"
               step="0.01"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              placeholder="e.g. 12.99"
+              className="w-full px-4 py-3 rounded-md border border-gray-300
+                         focus:outline-none focus:ring-2 focus:ring-indigo-400
+                         focus:border-indigo-400 transition-shadow shadow-sm
+                         hover:shadow-md"
+              required
+            />
+          </div>
+
+          {/* Measurement */}
+          <div>
+            <label className="block text-gray-700 font-medium mb-2">
+              Measurement
+            </label>
+            <input
+              type="text"
+              value={measurement}
+              onChange={(e) => setMeasurement(e.target.value)}
+              placeholder="e.g. kg, liters, pcs"
+              className="w-full px-4 py-3 rounded-md border border-gray-300
+                         focus:outline-none focus:ring-2 focus:ring-indigo-400
+                         focus:border-indigo-400 transition-shadow shadow-sm
+                         hover:shadow-md"
               required
             />
           </div>
@@ -119,7 +184,9 @@ const AddItem = () => {
 
         <button
           type="submit"
-          className="mt-6 bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-md"
+          className="w-full py-4 bg-indigo-600 text-white font-semibold rounded-md
+                     shadow-md hover:bg-indigo-700 transition-colors duration-300
+                     focus:outline-none focus:ring-4 focus:ring-indigo-300"
         >
           Add Item
         </button>
