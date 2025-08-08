@@ -142,7 +142,19 @@ const apiService = {
   async getStockByItemId(itemId) {
     const response = await axiosInstance.get(`/Stock/${itemId}`);
     return response.data;
-  }
+  },
+
+  //notification 
+
+    // ✅ Save FCM Device Token API
+  async saveDeviceToken(userId, fcmToken) {
+    const response = await axiosInstance.post('/Notification/save-device-token', {
+      userId,
+      token: fcmToken,
+    });
+    return response.data;
+  },
+
 };
 
 export default apiService;

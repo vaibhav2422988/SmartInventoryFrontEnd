@@ -2,6 +2,28 @@ import React, { useState } from 'react';
 import { Lock, User, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import apiService from '../apiService';
+import { requestFCMToken } from '../firebase/fcm';
+import { sendTokenToBackend } from '../firebase/sendToken';
+
+
+function parseJwt(token) {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => '%' + c.charCodeAt(0).toString(16).padStart(2, '0'))
+        .join('')
+    );
+    return JSON.parse(jsonPayload);
+  } catch (e) {
+    console.error('Invalid JWT token', e);
+    return null;
+  }
+}
+
+
 
 const LoginForm = ({ onToggleForm }) => {
   const [formData, setFormData] = useState({ username: '', password: '' });
@@ -15,7 +37,29 @@ const LoginForm = ({ onToggleForm }) => {
     setError('');
     try {
       const response = await apiService.login(formData);
-      login(response.token);
+      const { token } = response;
+      
+      // Decode token to get payload
+      const decoded = parseJwt(token);
+      if(decoded == null) alert("failed 123332131")
+      // Assuming userId is in decoded.sub or decoded.nameid or decoded.userId
+      const userId = decoded.sub 
+      || decoded.userId 
+      || decoded.nameid 
+      || decoded.unique_name 
+      || decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/nameidentifier'] 
+      || decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'];
+
+      console.log('Extracted userId:', userId);
+
+      alert(userId)
+
+      login(token); // store token
+      // Now use userId to send FCM token
+      const fcmToken = await requestFCMToken();
+      if (fcmToken) {
+        await sendTokenToBackend(userId, fcmToken);
+        }
     } catch (error) {
       setError('Incorrect Credentials');
     } finally {

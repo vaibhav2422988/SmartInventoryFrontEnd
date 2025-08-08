@@ -15,6 +15,8 @@ import Login from './Components/LoginForm'; // Your Login component
 import RegisterForm from './Components/RegisterForm'
 import { useAuth, AuthProvider } from './context/AuthContext';
 
+import { onMessage } from "firebase/messaging";
+import { messaging } from './firebase/firebaseConfig';
 
 const AppContent = () => {
 
@@ -28,6 +30,29 @@ const AppContent = () => {
         setActiveTab('dashboard');
         }
     }, [user]);
+
+    const shownMessages = new Set();
+
+  //   useEffect(() => {
+  //   const unsubscribe = onMessage(messaging, (payload) => {
+  //     const messageId = payload?.messageId || payload?.data?.messageId;
+  //     const title = payload.notification?.title || "Notification received!";
+  //     const body = payload.notification?.body || "";
+  //     const data = payload.data || {};
+
+  //     if (messageId) {
+  //       console.log("✅ Message ID:", messageId);
+  //     }
+
+  //     if (messageId) {
+  //       alert(
+  //         `📬 ${title}\n\n${body}\n`
+  //       );
+  //     }
+  //   });
+
+  //   return () => unsubscribe();
+  // }, []);
 
   // While loading auth info, show loading message
   if (loading) return <p className="p-4 text-center">Loading...</p>;
