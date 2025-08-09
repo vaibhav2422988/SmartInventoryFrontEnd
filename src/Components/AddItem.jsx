@@ -59,7 +59,7 @@ const AddItem = () => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-lg max-w-3xl mx-auto mt-12 p-8">
+    <div className="bg-white rounded-xl shadow-lg max-w-3xl mx-auto mt-0 p-8">
       <h2 className="text-3xl font-semibold text-gray-800 mb-8 text-center">
         Add New Item
       </h2>
