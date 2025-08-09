@@ -17,13 +17,23 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage(function(payload) {
   console.log('[firebase-messaging-sw.js] Received background message ', payload);
 
-  const notificationTitle = payload.data.title;
-  // const notificationOptions = {
-  //   body: payload.data.body || 'Default Body',
-  //   // data: payload.data, // optional: pass data to notification click event
-  // };
+  // If notification is available, use it for displaying
+  const notificationTitle = payload.notification.title || 'Default Title';
+  const notificationBody = payload.notification.body || 'Default Body'; // Use notification.body
 
-  // self.registration.showNotification(notificationTitle);
+  // Log the payload for debugging
+  console.log('Notification Payload:', payload.notification);
+
+  const notificationOptions = {
+    body: notificationBody,
+    // You can pass other data as well if needed
+    data: payload.data || {}, // Pass the data along for future reference on click
+  };
+
+  // Show the notification if there's a title and body
+  if (notificationTitle && notificationBody !== 'undefined') {
+    self.registration.showNotification(notificationTitle, notificationOptions);
+  }
 });
 
 

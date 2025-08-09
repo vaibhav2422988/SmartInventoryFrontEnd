@@ -20,7 +20,6 @@ const AddItem = () => {
         console.error("Error fetching categories", err);
       }
     };
-
     fetchCategories();
   }, []);
 
